@@ -1,27 +1,36 @@
-import React, { useState } from "react";
+import { type FC, useState } from "react";
 import logo from "../assets/logo.png";
-import axios from "axios";
+import axios, { type AxiosError } from "axios";
 import { useDispatch } from "react-redux";
 import { addUser } from "../utils/slices/userSlice";
 import { useNavigate } from "react-router-dom";
 import { BASE_URL } from "../utils/constants/url";
-const Login = () => {
-  const [emailId, setEmailId] = useState("shruu@gmail.com");
-  const [password, setPassword] = useState("Shruu@123");
+import type { LoginCredentials, LoginResponse } from "../types/user.types";
+import type { ApiError } from "../types/api.types";
+
+const Login: FC = () => {
+  const [emailId, setEmailId] = useState<string>("shruu@gmail.com");
+  const [password, setPassword] = useState<string>("Shruu@123");
+  const [error, setError] = useState<string | null>(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const handleLogin = async () => {
-    
+
+  const handleLogin = async (): Promise<void> => {
+    setError(null);
     try {
-      const res = await axios.post(
-       BASE_URL + "/login",
-        { password, emailId },
-        { withCredentials: true },
+      const credentials: LoginCredentials = { emailId, password };
+      const res = await axios.post<LoginResponse>(
+        BASE_URL + "/login",
+        credentials,
+        { withCredentials: true }
       );
       dispatch(addUser(res.data));
-      return navigate("/")
+      navigate("/");
     } catch (err) {
-      console.error(err);
+      const error = err as AxiosError<ApiError>;
+      const message = error.response?.data?.message || "Login failed";
+      setError(message);
+      console.error("Login error:", error);
     }
   };
   
@@ -55,6 +64,11 @@ const Login = () => {
               onChange={(e) => setPassword(e.target.value)}
             />
 
+            {error && (
+              <div className="alert alert-error mt-4" role="alert">
+                <span>{error}</span>
+              </div>
+            )}
             <button className="btn btn-neutral mt-4" onClick={handleLogin}>
               Login
             </button>

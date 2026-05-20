@@ -1,23 +1,32 @@
-import axios from "axios";
+import axios, { type AxiosError } from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { BASE_URL } from "../utils/constants/url";
 import { removeUser } from "../utils/slices/userSlice";
+import type { RootState } from "../types/store.types";
+import type { User } from "../types/user.types";
+import type { LogoutApiResponse, ApiError } from "../types/api.types";
+import { type FC } from "react";
 
-export const Navbar = () => {
-  const user = useSelector((store) => store.user);
+export const Navbar: FC = () => {
+  const user = useSelector((store: RootState) => store.user) as User | null;
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const handleLogout =async()=>{
-    try{
-     const res = await axios.post(BASE_URL+ "/logout",
-      {},{withCredentials:true});
-      dispatch(removeUser())
-     navigate("/login")
-    }catch(err){
-        console.error(err)
+
+  const handleLogout = async (): Promise<void> => {
+    try {
+      await axios.post<LogoutApiResponse>(
+        BASE_URL + "/logout",
+        {},
+        { withCredentials: true }
+      );
+      dispatch(removeUser());
+      navigate("/login");
+    } catch (err) {
+      const error = err as AxiosError<ApiError>;
+      console.error("Logout error:", error);
     }
-  }
+  };
   return (
     <div className="navbar bg-base-100 shadow-sm" data-theme="dark">
       <div className="flex-1">
@@ -44,7 +53,7 @@ export const Navbar = () => {
             </div>
 
             <ul
-              tabIndex="-1"
+              tabIndex={0}
               className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow"
             >
               <li>

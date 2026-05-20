@@ -1,9 +1,9 @@
-import React from 'react'
+import { type FC } from 'react';
 
-const Feed = () => {
+const Feed: FC = () => {
   return (
     <div>Feed</div>
-  )
-}
+  );
+};
 
-export default Feed
+export default Feed;

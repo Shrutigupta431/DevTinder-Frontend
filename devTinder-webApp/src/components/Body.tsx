@@ -1,28 +1,38 @@
-import React, { useEffect } from "react";
+import { useEffect, type FC } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { Navbar } from "./NavBar";
 import Foter from "./Foter";
 import { BASE_URL } from "../utils/constants/url";
-import axios from "axios";
+import axios, { type AxiosError } from "axios";
 import { addUser } from "../utils/slices/userSlice";
 import { useDispatch, useSelector } from "react-redux";
+import type { RootState } from "../types/store.types";
+import type { User } from "../types/user.types";
+import type { ProfileViewResponse, ApiError } from "../types/api.types";
 
-const Body = () => {
+const Body: FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const userData = useSelector(store=>store.user);
-  const fetchUser = async () => {
+  const userData = useSelector((store: RootState) => store.user) as User | null;
+
+  const fetchUser = async (): Promise<void> => {
     try {
-      if (userData) return ;
-      const res = await axios.get(BASE_URL + "/profile/view", {
-        withCredentials: true,
-      });
-      dispatch(addUser(res.data));
+      if (userData) return;
+      const res = await axios.get<ProfileViewResponse>(
+        BASE_URL + "/profile/view",
+        {
+          withCredentials: true,
+        }
+      );
+      if (res.data.data) {
+        dispatch(addUser(res.data.data));
+      }
     } catch (err) {
-      if (err.status === 401) {
+      const error = err as AxiosError<ApiError>;
+      if (error.response?.status === 401) {
         navigate("/login");
       }
-      console.error(err);
+      console.error("Fetch user error:", error);
     }
   };
   useEffect(() => {

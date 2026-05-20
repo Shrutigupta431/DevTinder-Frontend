@@ -5,7 +5,9 @@ import Profile from "./components/Profile";
 import { Provider } from "react-redux";
 import { appStore } from "./utils/store/appStore";
 import Feed from "./features/feedPage/Feed";
-function App() {
+import { type FC } from "react";
+
+const App: FC = () => {
   return (
     <>
       <Provider store={appStore}>
@@ -21,6 +23,6 @@ function App() {
       </Provider>
     </>
   );
-}
+};
 
 export default App;
