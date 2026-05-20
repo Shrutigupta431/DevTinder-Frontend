@@ -15,7 +15,9 @@ export interface User {
   createdAt?: string;
   updatedAt?: string;
 }
-
+export interface UserFeed {
+    
+}
 export interface LoginCredentials {
   emailId: string;
   password: string;

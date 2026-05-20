@@ -48,7 +48,7 @@ export const Navbar: FC = () => {
               className="btn btn-ghost btn-circle avatar mr-1"
             >
               <div className="w-10 rounded-full mr-1">
-                <img alt="Tailwind CSS Navbar component" src={user.photoUrl} />
+                <img alt="Tailwind CSS Navbar component" src={user?.photoUrl} />
               </div>
             </div>
 
@@ -63,7 +63,10 @@ export const Navbar: FC = () => {
                 </Link>
               </li>
               <li>
-                <a>Settings</a>
+                <Link to="/connections">Connections</Link>
+              </li>
+               <li>
+                <Link to="/requests">Requests</Link>
               </li>
               <li>
                 <a onClick={handleLogout}>Logout</a>

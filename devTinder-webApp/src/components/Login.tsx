@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { BASE_URL } from "../utils/constants/url";
 import type { LoginCredentials, LoginResponse } from "../types/user.types";
 import type { ApiError } from "../types/api.types";
+import validator from "validator";
 
 const Login: FC = () => {
   const [emailId, setEmailId] = useState<string>("shruu@gmail.com");
@@ -15,25 +16,48 @@ const Login: FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const handleLogin = async (): Promise<void> => {
-    setError(null);
-    try {
-      const credentials: LoginCredentials = { emailId, password };
-      const res = await axios.post<LoginResponse>(
-        BASE_URL + "/login",
-        credentials,
-        { withCredentials: true }
-      );
-      dispatch(addUser(res.data));
-      navigate("/");
-    } catch (err) {
-      const error = err as AxiosError<ApiError>;
-      const message = error.response?.data?.message || "Login failed";
-      setError(message);
-      console.error("Login error:", error);
-    }
-  };
-  
+const handleLogin = async (): Promise<void> => {
+  setError(null);
+
+  // // Email validation
+  if (!validator.isEmail(emailId)) {
+    setError("Invalid email");
+    return;
+  }
+
+  // // Password empty check
+  // if (validator.isStrongPassword(password)) {
+  //   setError("Password is required");
+  //   return;
+  // }
+
+  try {
+    const credentials: LoginCredentials = {
+      emailId,
+      password,
+    };
+
+    const res = await axios.post<LoginResponse>(
+      BASE_URL + "/login",
+      credentials,
+      { withCredentials: true }
+    );
+
+    dispatch(addUser(res.data));
+    navigate("/");
+  } catch (err) {
+    const error = err as AxiosError<ApiError>;
+
+    const message = typeof error.response?.data === 'string' 
+      ? error.response.data 
+      : error.response?.data?.message || "Login failed";
+
+    setError(message as string);
+
+    console.error("Login error:", error);
+  }
+};
+
   return (
     <div className="flex justify-center p-5">
       <div className="card card-side bg-base-100 shadow-sm">
@@ -65,9 +89,7 @@ const Login: FC = () => {
             />
 
             {error && (
-              <div className="alert alert-error mt-4" role="alert">
-                <span>{error}</span>
-              </div>
+                <p className="text-red-500 text-sm">{error}</p>
             )}
             <button className="btn btn-neutral mt-4" onClick={handleLogin}>
               Login

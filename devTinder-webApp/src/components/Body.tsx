@@ -7,14 +7,14 @@ import axios, { type AxiosError } from "axios";
 import { addUser } from "../utils/slices/userSlice";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../types/store.types";
-import type { User } from "../types/user.types";
+// import type { User } from "../types/user.types";
 import type { ProfileViewResponse, ApiError } from "../types/api.types";
 
 const Body: FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const userData = useSelector((store: RootState) => store.user) as User | null;
-
+  const userData = useSelector((store: RootState) => store.user);
+console.log("userData",userData)
   const fetchUser = async (): Promise<void> => {
     try {
       if (userData) return;
@@ -24,9 +24,10 @@ const Body: FC = () => {
           withCredentials: true,
         }
       );
-      if (res.data.data) {
-        dispatch(addUser(res.data.data));
+      if (res.data) {
+        dispatch(addUser(res.data as any));
       }
+
     } catch (err) {
       const error = err as AxiosError<ApiError>;
       if (error.response?.status === 401) {
