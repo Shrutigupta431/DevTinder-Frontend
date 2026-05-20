@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { useDispatch, useSelector } from "react-redux";
 import { BASE_URL } from "../../utils/constants/url";
-import { addRequest } from "../../utils/slices/requestSlice";
+import { addRequest, removeRequest } from "../../utils/slices/requestSlice";
 import type { RootState } from "../../types/store.types";
 import type { User } from "../../types/user.types";
 
@@ -19,7 +19,7 @@ const Requests = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [search] = useState("");
-console.log("requestList",requestList)
+
   const filteredRequests = useMemo(() => {
     if (!requestList) return null;
     const query = search.trim().toLowerCase();
@@ -61,6 +61,7 @@ console.log("requestList",requestList)
       setLoading(false);
     }
   };
+  console.log("requestList",requestList)
 
   const reviewRequest = async (status, _id) => {
     console.log("_id",_id)
@@ -70,6 +71,7 @@ console.log("requestList",requestList)
         {},
         { withCredentials: true },
       );
+      dispatch(removeRequest(_id));
     } catch (err) {}
   };
   useEffect(() => {
