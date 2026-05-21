@@ -1,4 +1,4 @@
-import { type FC, useEffect, useState } from "react";
+import { type FC, useState } from "react";
 import logo from "../assets/logo.png";
 import axios, { type AxiosError } from "axios";
 import { useDispatch } from "react-redux";
@@ -85,13 +85,13 @@ const Login: FC = () => {
         lastName,
       };
 
-      const res = await axios.post<LoginResponse>(
+      const res = await axios.post(
         BASE_URL + "/signup",
         credentials,
         { withCredentials: true },
       );
 
-      dispatch(addUser(res.data.data));
+      dispatch(addUser(res?.data?.data));
       setIsLogin(!isLogin);
       return navigate("/profile");
     } catch (err) {

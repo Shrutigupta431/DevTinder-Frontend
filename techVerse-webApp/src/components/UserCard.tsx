@@ -1,43 +1,41 @@
 import { type FC } from "react";
 import type { User } from "../types/user.types";
-import axios from "axios";
-import { removeFromFeed } from "../utils/slices/feedSlice";
-import { useDispatch } from "react-redux";
-import { BASE_URL } from "../utils/constants/url";
-import { X, Heart, MapPin, Code2 } from "lucide-react";
+// import axios from "axios";
+// import { removeFromFeed } from "../utils/slices/feedSlice";
+// import { useDispatch } from "react-redux";
+// import { BASE_URL } from "../utils/constants/url";
+import { Code2 } from "lucide-react";
 
 interface UserCardProps {
   user: User;
 }
 
 const UserCard: FC<UserCardProps> = ({ user }) => {
-  const dispatch = useDispatch();
 
   const {
     firstName,
     lastName,
     skills,
     about,
-    _id,
     photoUrl,
   } = user;
 
-  const handleSendRequestFrom = async (
-    status: string,
-    userId: string
-  ) => {
-    try {
-      await axios.post(
-        BASE_URL + "/request/send/" + status + "/" + userId,
-        {},
-        { withCredentials: true }
-      );
+  // const handleSendRequestFrom = async (
+  //   status: string,
+  //   userId: string
+  // ) => {
+  //   try {
+  //     await axios.post(
+  //       BASE_URL + "/request/send/" + status + "/" + userId,
+  //       {},
+  //       { withCredentials: true }
+  //     );
 
-      dispatch(removeFromFeed(_id));
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  //     dispatch(removeFromFeed(_id));
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // };
 
   return (
     <div

@@ -11,7 +11,6 @@ import {
   Sparkles,
   MessageCircle,
   Eye,
-  Code2,
 } from "lucide-react";
 
 const placeholderImage =
