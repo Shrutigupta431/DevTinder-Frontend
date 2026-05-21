@@ -14,7 +14,6 @@ const Body: FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const userData = useSelector((store: RootState) => store.user);
-console.log("userData",userData)
   const fetchUser = async (): Promise<void> => {
     try {
       if (userData) return;

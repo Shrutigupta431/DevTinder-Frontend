@@ -21,6 +21,8 @@ export interface UserFeed {
 export interface LoginCredentials {
   emailId: string;
   password: string;
+  firstName?:string;
+  lastName?:string;
 }
 
 export interface LoginResponse {
