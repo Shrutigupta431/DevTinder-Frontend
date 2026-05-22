@@ -11,8 +11,8 @@ import validator from "validator";
 import background from "../assets/background.png";
 
 const Login: FC = () => {
-  const [emailId, setEmailId] = useState<string>("shruu@gmail.com");
-  const [password, setPassword] = useState<string>("Shruu@123");
+  const [emailId, setEmailId] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [error, setError] = useState<string | null>(null);
