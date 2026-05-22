@@ -345,7 +345,7 @@ return (
             <p
               className="
                 mt-5 cursor-pointer text-center
-                text-xs text-slate-400
+                text-xs text-white
                 transition duration-300
                 hover:text-cyan-300
               "
