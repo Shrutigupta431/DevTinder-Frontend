@@ -6,7 +6,6 @@ import {
   Phone,
   Video,
   MoreVertical,
-  TruckElectric,
 } from "lucide-react";
 
 import { createSocketConnection } from "../../utils/constants/socket";
@@ -32,7 +31,14 @@ type ReceiveMessageType = {
   text: string;
   userId: string;
 };
+type ChatMessage = {
+  senderId: {
+    firstName: string;
+    lastName: string;
+  };
 
+  text: string;
+};
 const Chat = () => {
   const { targetUserId } = useParams();
 
@@ -63,7 +69,7 @@ const Chat = () => {
       const chat = await axios.get(BASE_URL+"/chat/"+ targetUserId,{withCredentials:true});
        console.log("chat",chat?.data.messages);
 
-       const textArray = chat?.data?.messages?.map(msg=>{
+       const textArray = chat?.data?.messages?.map((msg : ChatMessage)=>{
         return{
           firstName:msg?.senderId.firstName, lastName:msg?.senderId.lastName, text: msg.text
         }
