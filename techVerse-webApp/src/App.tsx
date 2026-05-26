@@ -10,6 +10,7 @@ import { type FC } from "react";
 import Connections from "./features/connectionPage/Connections";
 
 import Requests from "./features/requestPage/Requests";
+import Chat from "./features/chat/Chat";
 
 const App: FC = () => {
   return (
@@ -24,6 +25,7 @@ const App: FC = () => {
               <Route path="/profile/edit" element={<EditProfile />} />
               <Route path="/connections" element={<Connections />} />
               <Route path="/requests" element={<Requests />} />
+              <Route path="/chat/:targetUserId" element={<Chat />} />
             </Route>
           </Routes>
         </BrowserRouter>
