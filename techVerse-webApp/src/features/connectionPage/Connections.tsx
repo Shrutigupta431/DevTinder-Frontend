@@ -22,7 +22,9 @@ const Connections: FC = () => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [unreadCounts, setUnreadCounts] = useState([]);
+  type UnreadCount = { targetUserId: string; unreadCount: number };
+  const [unreadCounts, setUnreadCounts] = useState<UnreadCount[]>([]);
+
   const fetchUnreadCounts = async () => {
     try {
       const res = await axios.get(BASE_URL + "/unread-counts", {
@@ -361,8 +363,9 @@ const Connections: FC = () => {
                           <MessageCircle size={16} />
                           Message
                         </Link>
-                        {unreadData?.unreadCount > 0 && (
+                        {((unreadData?.unreadCount ?? 0) > 0) && (
                           <div
+
                             className="
                     bg-pink-500
                     text-white
@@ -376,7 +379,8 @@ const Connections: FC = () => {
                     px-2
                   "
                           >
-                            {unreadData.unreadCount}
+                            {unreadData?.unreadCount ?? 0}
+
                           </div>
                         )}
                       </div>

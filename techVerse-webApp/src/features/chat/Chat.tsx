@@ -24,14 +24,7 @@ type MessageType = {
 };
 
 
-type ReceiveMessageType = {
-  firstName?: string;
-  text: string;
-  userId: string;
-  messageId?: string;
-  deliveredAt?: string | Date | null;
-  seenAt?: string | Date | null;
-};
+
 
 const Chat = () => {
   const { targetUserId } = useParams();
