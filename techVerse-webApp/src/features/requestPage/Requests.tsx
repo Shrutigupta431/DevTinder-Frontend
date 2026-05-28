@@ -7,6 +7,8 @@ import { addRequest, removeRequest } from "../../utils/slices/requestSlice";
 import type { RootState } from "../../types/store.types";
 import type { User } from "../../types/user.types";
 import { User as Profile } from "lucide-react";
+import { Link } from "react-router-dom";
+
 
 const placeholderImage =
   "https://img.daisyui.com/images/stock/photo-1606107557195-0e29a4b5b4aa.webp";
@@ -283,8 +285,9 @@ const Requests = () => {
                           </button>
 
                           {/* View */}
-                          <button
-                            type="button"
+                          <Link
+                            to="/profile/view"
+                            state={{ user: connection.fromUserId }}
                             className="
                 rounded-full border border-white/10
                 bg-white/5 px-5 py-2
@@ -296,7 +299,8 @@ const Requests = () => {
               "
                           >
                             View Profile
-                          </button>
+                          </Link>
+
                         </div>
                       </div>
                     </div>

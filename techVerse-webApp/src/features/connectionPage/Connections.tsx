@@ -333,8 +333,9 @@ const Connections: FC = () => {
 
                       {/* Right Actions */}
                       <div className="flex items-center gap-3 self-end lg:self-center">
-                        <button
-                          type="button"
+                        <Link
+                          to="/profile/view"
+                          state={{ user: connection }}
                           className="
           flex items-center gap-2 rounded-full
           border border-white/10 bg-white/5
@@ -347,7 +348,8 @@ const Connections: FC = () => {
                         >
                           <Eye size={16} />
                           View
-                        </button>
+                        </Link>
+
 
                         <Link
                           to={`/chat/${connection._id}`}
