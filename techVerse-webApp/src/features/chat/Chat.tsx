@@ -1,12 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useParams } from "react-router-dom";
-import {
-  Send,
-  Smile,
-  Phone,
-  Video,
-  MoreVertical,
-} from "lucide-react";
+import { Send, Smile } from "lucide-react";
 
 import { createSocketConnection } from "../../utils/constants/socket";
 
@@ -51,9 +45,11 @@ const Chat = () => {
   const [newMessage, setNewMessage] = useState("");
 
   const [typing, setTyping] = useState(false);
+  const [isOnline, setIsOnline] = useState(false);
 
+  const [lastSeen, setLastSeen] = useState("");
   const loggedInUser = useSelector(
-    (store: RootState) => store?.user
+    (store: RootState) => store?.user,
   ) as User | null;
 
   const userId = loggedInUser?._id;
@@ -64,73 +60,116 @@ const Chat = () => {
 
   const socketRef = useRef<Socket | null>(null);
 
-  const fetchChatMessages =async()=>{
-    try{
-      const chat = await axios.get(BASE_URL+"/chat/"+ targetUserId,{withCredentials:true});
-       console.log("chat",chat?.data.messages);
+  const fetchChatMessages = async () => {
+    try {
+      const chat = await axios.get(BASE_URL + "/chat/" + targetUserId, {
+        withCredentials: true,
+      });
+      console.log("chat", chat?.data.messages);
 
-       const textArray = chat?.data?.messages?.map((msg : ChatMessage)=>{
-        return{
-          firstName:msg?.senderId.firstName, lastName:msg?.senderId.lastName, text: msg.text
-        }
-       })
+      const textArray = chat?.data?.messages?.map((msg: ChatMessage) => {
+        return {
+          firstName: msg?.senderId.firstName,
+          lastName: msg?.senderId.lastName,
+          text: msg.text,
+        };
+      });
 
-       setMessages(textArray)
-      
+      setMessages(textArray);
+    } catch (err) {}
+  };
+  const fetchUserStatus = async () => {
+    try {
+      const res = await axios.get(BASE_URL + "/user-status/" + targetUserId);
 
-    }catch(err){
+      setIsOnline(res.data.isOnline);
 
+      if (res.data.lastSeen) {
+        setLastSeen(new Date(res.data.lastSeen).toLocaleString());
+      }
+    } catch (err) {
+      console.log(err);
     }
-  }
+  };
+  useEffect(() => {
+    if (!targetUserId) return;
 
-  useEffect(()=>{
-    fetchChatMessages()
-  },[])
+    fetchChatMessages();
+
+    fetchUserStatus();
+  }, [targetUserId]);
 
   // SOCKET CONNECTION
   useEffect(() => {
     if (!userId || !targetUserId) return;
 
-    socketRef.current = createSocketConnection();
+    const socket = createSocketConnection();
+    socketRef.current = socket;
 
-    socketRef.current.emit("joinChat", {
+    // ✅ REGISTER USER
+    socket.emit("registerUser", { userId });
+
+    socket.emit("joinChat", {
       firstName,
       userId,
       targetUserId,
     });
 
-    // RECEIVE MESSAGE
-    socketRef.current.on(
-      "receiveMessage",
-      (data: ReceiveMessageType) => {
-        setTyping(false);
+    // Ensure correct initial online state even if backend doesn't emit the event
+    fetchUserStatus();
 
-        setMessages((prev) => [
-          ...prev,
-          {
-            firstName: data.firstName,
-            text: data.text,
-            sender: data.userId === userId ? "me" : "other",
-            time: new Date().toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            }),
-          },
-        ]);
-      }
-    );
+    const handleReceiveMessage = (data: ReceiveMessageType) => {
+      setTyping(false);
 
-    // TYPING
-    socketRef.current.on("typing", () => {
+      setMessages((prev) => [
+        ...prev,
+        {
+          firstName: data.firstName,
+          text: data.text,
+          sender: data.userId === userId ? "me" : "other",
+          time: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        },
+      ]);
+    };
+
+    const handleTyping = () => {
       setTyping(true);
+      setTimeout(() => setTyping(false), 2000);
+    };
 
-      setTimeout(() => {
-        setTyping(false);
-      }, 2000);
-    });
+    const handleUserOnline = ({ userId: onlineUserId }: { userId: string }) => {
+      if (String(onlineUserId) === String(targetUserId)) {
+        setIsOnline(true);
+      }
+    };
+
+    const handleUserOffline = ({
+      userId: offlineUserId,
+    }: {
+      userId: string;
+    }) => {
+      if (String(offlineUserId) === String(targetUserId)) {
+        setIsOnline(false);
+        fetchUserStatus();
+      }
+    };
+
+    socket.on("receiveMessage", handleReceiveMessage);
+    socket.on("typing", handleTyping);
+    socket.on("userOnline", handleUserOnline);
+    socket.on("userOffline", handleUserOffline);
 
     return () => {
-      socketRef.current?.disconnect();
+      socket.off("receiveMessage", handleReceiveMessage);
+      socket.off("typing", handleTyping);
+      socket.off("userOnline", handleUserOnline);
+      socket.off("userOffline", handleUserOffline);
+
+      socket.disconnect();
+      socketRef.current = null;
     };
   }, [userId, targetUserId, firstName]);
 
@@ -142,48 +181,43 @@ const Chat = () => {
   }, [messages, typing]);
 
   // SEND MESSAGE
-const sendMessage = () => {
-  if (!newMessage.trim()) return;
+  const sendMessage = () => {
+    if (!newMessage.trim()) return;
 
-  const msg = {
-    firstName,
-    userId,
-    targetUserId,
-    text: newMessage,
+    const msg = {
+      firstName,
+      userId,
+      targetUserId,
+      text: newMessage,
+    };
+
+    socketRef.current?.emit("sendMessage", msg);
+
+    setNewMessage("");
   };
 
-  socketRef.current?.emit("sendMessage", msg);
-
-  setNewMessage("");
-};
-
-  // TYPING EVENT
-  const handleTyping = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  // TYPING EVENT (input)
+  const handleTypingInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewMessage(e.target.value);
 
     socketRef.current?.emit("typing", {
       firstName,
+      userId,
       targetUserId,
     });
   };
-console.log("messages", messages)
+  console.log("messages", lastSeen, isOnline);
   return (
     <div className="h-screen overflow-hidden bg-gradient-to-br from-[#140152] via-[#22007C] to-[#05010E] flex items-center justify-center p-4 relative">
-      
       {/* BACKGROUND BUBBLES */}
       <div className="absolute top-0 left-0 w-72 h-72 bg-pink-500/20 rounded-full blur-3xl animate-pulse"></div>
 
       <div className="absolute bottom-0 right-0 w-72 h-72 bg-cyan-500/20 rounded-full blur-3xl animate-pulse"></div>
 
       <div className="w-2xl max-w-5xl h-[82vh] rounded-3xl overflow-hidden border border-white/10 bg-white/10 backdrop-blur-2xl shadow-2xl flex flex-col">
-
         {/* HEADER */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-white/10 bg-black/20 backdrop-blur-xl">
-          
           <div className="flex items-center gap-4">
-
             <div className="relative">
               <img
                 src={user?.photoUrl}
@@ -191,7 +225,7 @@ console.log("messages", messages)
                 className="w-14 h-14 rounded-full border-2 border-cyan-400 object-cover"
               />
 
-              <span className="absolute bottom-1 right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-black"></span>
+              {/* <span className="absolute bottom-1 right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-black"></span> */}
             </div>
 
             <div>
@@ -199,25 +233,28 @@ console.log("messages", messages)
                 {user?.firstName} {user?.lastName}
               </h1>
 
-              <p className="text-green-300 text-sm">
-                Online
+              <p className="text-sm">
+                {isOnline ? (
+                  <span className="text-green-300">🟢 Online</span>
+                ) : (
+                  <span className="text-gray-300">Last seen {lastSeen}</span>
+                )}
               </p>
             </div>
           </div>
 
           {/* ACTIONS */}
-          <div className="flex items-center gap-5 text-white">
+          {/* <div className="flex items-center gap-5 text-white">
             <Phone className="cursor-pointer hover:text-cyan-400 transition" />
 
             <Video className="cursor-pointer hover:text-pink-400 transition" />
 
             <MoreVertical className="cursor-pointer hover:text-yellow-400 transition" />
-          </div>
+          </div> */}
         </div>
 
         {/* MESSAGES */}
         <div className="flex-1 overflow-y-auto px-5 py-6 space-y-5 scrollbar-hide">
-
           {messages.map((msg, index) => (
             <div
               key={index}
@@ -234,9 +271,7 @@ console.log("messages", messages)
                     : "bg-white/10 border border-white/10 rounded-bl-md"
                 }`}
               >
-                <p className="text-[15px] break-words">
-                  {msg.text}
-                </p>
+                <p className="text-[15px] break-words">{msg.text}</p>
 
                 <span className="text-[10px] text-gray-200 flex justify-end mt-1">
                   {msg.time}
@@ -263,9 +298,7 @@ console.log("messages", messages)
 
         {/* INPUT */}
         <div className="p-5 border-t border-white/10 bg-black/20 backdrop-blur-xl">
-          
           <div className="flex items-center gap-3">
-
             <button className="text-yellow-300 hover:scale-110 transition">
               <Smile />
             </button>
@@ -274,7 +307,7 @@ console.log("messages", messages)
               type="text"
               placeholder="Type your message..."
               value={newMessage}
-              onChange={handleTyping}
+              onChange={handleTypingInput}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   sendMessage();

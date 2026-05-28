@@ -223,8 +223,7 @@ const Connections: FC = () => {
                 {/* Connection Card */}
                 <div
                   key={
-                    connection._id ??
-                    `${connection.firstName}-${connection.emailId}`
+                   index
                   }
                   className="
     group overflow-hidden rounded-[28px]
